@@ -6,8 +6,20 @@ interface CodeBlockProps {
   language?: string | null | undefined;
 }
 
+function detectLanguage(code: string): string {
+  if (/^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b/im.test(code)) return 'sql';
+  if (/^#!(\/usr)?\/bin\/(bash|sh|zsh)/m.test(code) || /\$\s*\w+|echo\s+|fi\b|then\b|elif\b/.test(code)) return 'bash';
+  if (/\bdef\s+\w+\s*\(|^\s*import\s+\w+|^\s*from\s+\w+\s+import|print\s*\(/m.test(code)) return 'python';
+  if (/\bpublic\s+class\b|\bSystem\.out\b|\bpublic\s+static\s+void\s+main\b/.test(code)) return 'java';
+  if (/#include\s*<(iostream|string|vector|map|algorithm)>|\bstd::|\bcout\b|\bcin\b/.test(code)) return 'cpp';
+  if (/#include\s*<(stdio|stdlib|string|math)\.h>|\bprintf\s*\(|\bscanf\s*\(|\bint\s+main\s*\(/.test(code)) return 'c';
+  if (/\b(interface|type\s+\w+\s*=|:\s*(string|number|boolean|void|any)\b)/.test(code)) return 'typescript';
+  if (/\b(const|let|var)\s+\w+\s*=|\bfunction\s+\w+\s*\(|=>\s*\{|console\.log\s*\(/.test(code)) return 'javascript';
+  return 'text';
+}
+
 export default function CodeBlock({ code, language }: CodeBlockProps) {
-  const lang = language ?? 'text';
+  const lang = language ?? detectLanguage(code);
 
   return (
     <div className="rounded-lg overflow-hidden border border-slate-600/70 shadow-md">

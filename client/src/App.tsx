@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import LibraryPage from './pages/LibraryPage';
 import ImportPage from './pages/ImportPage';
+import HowItWorksPage from './pages/HowItWorksPage';
 import QuizPage from './pages/QuizPage';
 import ResultsPage from './pages/ResultsPage';
 
@@ -11,6 +12,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<LibraryPage />} />
         <Route path="import" element={<ImportPage />} />
+        <Route path="how-it-works" element={<HowItWorksPage />} />
         <Route path="quiz/:id" element={<QuizPage />} />
         <Route path="quiz/:id/results" element={<ResultsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

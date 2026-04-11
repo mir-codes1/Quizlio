@@ -5,6 +5,337 @@ import { api, ApiError } from '../lib/api';
 import CodeBlock from '../components/CodeBlock';
 import type { QuizImportSchema } from '../lib/quizSchema';
 
+const AI_PROMPT = `You are generating a quiz in STRICT JSON FORMAT ONLY.
+
+Your task is to create a high-quality, exam-style multiple choice quiz based on the user's provided study material and instructions.
+
+Follow every rule exactly.
+
+==================================================
+OUTPUT FORMAT RULES
+==================================================
+
+1. Output exactly ONE fenced code block labeled json.
+2. Do not write any text before the code block.
+3. Do not write any text after the code block.
+4. Inside that code block, output exactly ONE valid JSON object.
+5. Do not include markdown headings, commentary, notes, or explanations outside the JSON.
+6. The JSON must parse successfully with a strict JSON parser.
+7. The JSON must be directly pasteable into a quiz app after copying only the contents of the json code block.
+
+The final answer must look like this shape and nothing else:
+
+\`\`\`json
+{
+  "title": "...",
+  "description": "...",
+  "questions": [...]
+}
+\`\`\`
+
+==================================================
+CRITICAL JSON VALIDITY RULES
+==================================================
+
+Everything inside the code block must be valid JSON.
+
+That means:
+
+- Every key must use double quotes.
+- Every string value must use double quotes.
+- Every double quote INSIDE any string value must be escaped as \\"
+- Every backslash must be escaped when needed
+- Every newline inside a string must be written as \\n
+- Never place raw multi-line code directly inside a JSON string
+- Never place unescaped code quotes inside codeSnippet
+- Never leave trailing commas
+- Never use comments
+- Never use markdown inside the JSON
+- Never use ellipses like ... unless they are inside a valid JSON string
+
+Examples of required escaping inside JSON strings:
+- printf(\\"%d\\\\n\\", x);
+- char s[20] = \\"hello\\";
+- Line 1\\nLine 2\\nLine 3
+
+If a code snippet contains quotes, all of those quotes must still be escaped for JSON.
+
+==================================================
+FINAL SELF-CHECK RULES
+==================================================
+
+Before producing the final answer, internally perform this checklist:
+
+1. Verify the response contains exactly one json code block.
+2. Verify there is no text outside the code block.
+3. Verify the content inside the code block is a single valid JSON object.
+4. Verify every codeSnippet is a valid JSON string.
+5. Verify all inner quotes inside prompt, codeSnippet, correctExplanation, and optionExplanations are escaped.
+6. Verify all newlines inside codeSnippet are encoded as \\n.
+7. Verify every question has exactly 6 options: A, B, C, D, E, F.
+8. Verify correctOptions matches questionType.
+9. Verify optionExplanations includes A through F.
+10. Verify the final JSON would successfully parse with JSON.parse(...).
+
+If any part would fail JSON.parse(...), fix it before outputting.
+
+==================================================
+PURPOSE
+==================================================
+
+The goal is to generate a realistic, challenging, exam-style quiz.
+
+This quiz must NOT feel like a shallow terminology quiz.
+It should feel like a real professor-written exam.
+
+Prioritize:
+- realistic code snippet questions
+- reasoning questions
+- output tracing
+- bug identification
+- concept application
+- subtle but fair distractors
+- detailed, relevant explanations
+
+Avoid:
+- trivial definitions
+- obvious answers
+- one-line filler questions
+- generic flashcard-style wording
+- repetitive distractors
+
+==================================================
+QUESTION TYPE RULES
+==================================================
+
+You may generate two kinds of questions:
+
+1. "single"
+- Exactly one option is correct.
+
+2. "multi"
+- More than one option may be correct.
+- Use this for choose-all-that-apply questions.
+
+If questionType is "multi", the prompt must clearly say that multiple answers may be correct.
+
+==================================================
+ANSWER DISTRIBUTION RULES
+==================================================
+
+To avoid predictable answer patterns, distribute correct answers across option letters in a balanced, varied way.
+
+For "single" questions:
+- Do NOT repeatedly place the correct answer in A or B.
+- Randomize the correct option position across A, B, C, D, E, and F.
+- Across the full quiz, aim for a balanced spread of correct single-answer positions.
+- Avoid obvious patterns such as:
+  - many consecutive answers with the same letter
+  - mostly A/B answers
+  - alphabetical runs like A, B, C, D
+  - repeated cycles
+
+For "multi" questions:
+- Randomize which letters are correct.
+- Do not make the correct sets cluster mostly around early letters.
+- Use a varied mix such as:
+  - two-correct-answer sets
+  - three-correct-answer sets
+  - occasional four-correct-answer sets if appropriate
+- Keep correctOptions sorted alphabetically, but choose the correct set itself in a varied way.
+
+Before finalizing:
+- Review the entire quiz's answer distribution.
+- If the answer pattern looks biased toward A or B, rebalance it.
+- Make the final answer placement feel naturally mixed and non-patterned.
+
+==================================================
+QUESTION MIX RULES
+==================================================
+
+Unless the user explicitly says otherwise, aim for a diverse mix of:
+- output prediction
+- bug/error identification
+- concept application
+- which explanation is best
+- which change fixes the issue
+- code tracing
+- edge-case reasoning
+- choose all that apply
+- select all true statements
+
+If the material is programming-heavy, at least 50% of the questions should involve code snippets.
+
+==================================================
+JSON SCHEMA
+==================================================
+
+Return JSON with this exact structure:
+
+{
+  "title": "string",
+  "description": "string",
+  "questions": [
+    {
+      "prompt": "string",
+      "questionType": "single or multi",
+      "codeSnippet": "string or empty string",
+      "options": {
+        "A": "string",
+        "B": "string",
+        "C": "string",
+        "D": "string",
+        "E": "string",
+        "F": "string"
+      },
+      "correctOptions": ["A"],
+      "correctExplanation": "string",
+      "optionExplanations": {
+        "A": "string",
+        "B": "string",
+        "C": "string",
+        "D": "string",
+        "E": "string",
+        "F": "string"
+      },
+      "sourceTag": "string"
+    }
+  ]
+}
+
+==================================================
+FIELD RULES
+==================================================
+
+"title"
+- A concise, appropriate quiz title.
+
+"description"
+- One short sentence summarizing the quiz focus.
+
+For each question:
+
+"prompt"
+- Clear, exam-style wording.
+- If questionType is "multi", explicitly indicate choose all that apply.
+
+"questionType"
+- Must be exactly "single" or "multi".
+
+"codeSnippet"
+- Put the full code here if the question uses code.
+- Preserve line breaks using \\n only.
+- If no code is needed, use "".
+- Do not place code in the prompt if it belongs in codeSnippet.
+
+"options"
+- Must contain exactly 6 options: A, B, C, D, E, F.
+
+"correctOptions"
+- Must always be an array.
+- For "single", include exactly 1 option.
+- For "multi", include 2 or more options in alphabetical order.
+
+"correctExplanation"
+- Explain why the correct answer or full correct set is correct.
+- Be specific to the question.
+
+"optionExplanations"
+- Must contain A through F.
+- Every option must have a useful explanation.
+- Do not use lazy wording like "just incorrect".
+
+"sourceTag"
+- A short topic label such as:
+  "Pointers", "Recursion", "Arrays", "Shell Scripting", "Lecture 4"
+
+==================================================
+CONSISTENCY RULES
+==================================================
+
+You must ensure:
+- Every question has exactly 6 options
+- Every question has at least 1 correct option
+- If questionType = "single", correctOptions has exactly 1 item
+- If questionType = "multi", correctOptions has at least 2 items
+- Every correct option exists in options
+- optionExplanations includes all 6 keys
+- Explanations agree with correctOptions
+- No contradictions
+- No malformed JSON
+
+==================================================
+QUALITY RULES
+==================================================
+
+Before finalizing:
+- Match the requested topic and scope closely
+- Match the requested number of questions exactly
+- Match the requested difficulty
+- Match the requested programming language or subject
+- Use codeSnippet properly
+- Make multi questions genuinely multi-answer
+- Make explanations concrete and useful
+- Make the quiz feel like a real exam
+- Check that answer placement is balanced across the quiz
+
+==================================================
+USER INPUT SECTION
+==================================================
+
+Generate a quiz using the following requirements:
+
+QUIZ TITLE OR TOPIC:
+[PASTE HERE]
+
+QUIZ DESCRIPTION / WHAT IT SHOULD COVER:
+[PASTE HERE]
+
+SOURCE MATERIAL / CONTENT TO DRAW FROM:
+[PASTE HERE]
+
+PROGRAMMING LANGUAGE OR SUBJECT AREA:
+[PASTE HERE]
+
+NUMBER OF QUESTIONS:
+[PASTE HERE]
+
+DIFFICULTY:
+[PASTE HERE]
+
+EXAM STYLE NOTES:
+[PASTE HERE]
+Examples:
+- My exam uses many code tracing questions
+- My professor likes subtle distractors
+- Focus on bugs, outputs, and pointer behavior
+- Avoid simple definition questions
+- Make it feel like a real multiple choice exam
+- Include some choose-all-that-apply questions
+
+ADDITIONAL CONSTRAINTS:
+[PASTE HERE]
+Examples:
+- At least 12 of 20 questions should include code snippets
+- Focus only on arrays, pointers, functions, and strings
+- No questions about files
+- Make snippets medium-length, not tiny
+- Use only concepts explicitly present in the source material
+- Include 4 choose-all-that-apply questions
+
+==================================================
+FINAL INSTRUCTION
+==================================================
+
+Return exactly one json code block and nothing else.
+
+Inside it, output exactly one valid JSON object that would successfully parse with JSON.parse(...) with no edits.
+
+Do not include commentary outside the code block.
+Do not include markdown except the single json code fence.
+Do not output invalid escaping.
+Do not output raw multi-line strings.`;
+
 type ValidationIssue = { path: string; message: string };
 
 type Stage =
@@ -21,6 +352,13 @@ export default function ImportPage() {
   const navigate = useNavigate();
   const [raw, setRaw] = useState('');
   const [stage, setStage] = useState<Stage>({ type: 'idle' });
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopyPrompt() {
+    await navigator.clipboard.writeText(AI_PROMPT);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   function handleChange(value: string) {
     setRaw(value);
@@ -88,11 +426,33 @@ export default function ImportPage() {
     <div className="max-w-3xl mx-auto">
 
       {/* Page header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Import Quiz</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Paste AI-generated quiz JSON, validate the structure, preview every question, then save.
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Import Quiz</h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Paste AI-generated quiz JSON, validate the structure, preview every question, then save.
+          </p>
+        </div>
+        <button
+          onClick={handleCopyPrompt}
+          className="shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-600 bg-slate-800 hover:bg-slate-700 hover:border-slate-500 text-sm text-slate-300 hover:text-white transition-colors"
+        >
+          {copied ? (
+            <>
+              <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9 11.586l6.293-6.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              <span className="text-emerald-400">Copied!</span>
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              </svg>
+              Copy Prompt
+            </>
+          )}
+        </button>
       </div>
 
       {/* Input area */}

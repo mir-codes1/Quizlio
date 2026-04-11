@@ -22,6 +22,9 @@ export default function Layout() {
             <NavLink to="/import" className={navClass}>
               Import
             </NavLink>
+            <NavLink to="/how-it-works" className={navClass}>
+              How it works
+            </NavLink>
           </nav>
         </div>
       </header>
