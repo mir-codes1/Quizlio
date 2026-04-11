@@ -22,17 +22,17 @@ export default function CodeBlock({ code, language }: CodeBlockProps) {
   const lang = language ?? detectLanguage(code);
 
   return (
-    <div className="rounded-lg overflow-hidden border border-slate-600/70 shadow-md">
+    <div className="rounded-lg overflow-hidden border border-dust-400 shadow-card">
       {/* Editor-style title bar */}
-      <div className="flex items-center justify-between px-3.5 py-2 bg-[#21252b] border-b border-slate-700/60">
+      <div className="flex items-center justify-between px-3.5 py-2 bg-[#21252b] border-b border-[#2d3139]">
         {/* Decorative dots — visual cue this is a code editor window */}
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-slate-600/70" />
-          <span className="w-2.5 h-2.5 rounded-full bg-slate-600/70" />
-          <span className="w-2.5 h-2.5 rounded-full bg-slate-600/70" />
+          <span className="w-2.5 h-2.5 rounded-full bg-[#4a515a]" />
+          <span className="w-2.5 h-2.5 rounded-full bg-[#4a515a]" />
+          <span className="w-2.5 h-2.5 rounded-full bg-[#4a515a]" />
         </div>
         {language && (
-          <span className="text-[11px] font-mono tracking-wide text-slate-400 uppercase">
+          <span className="text-[11px] font-mono tracking-wide text-blueslate-300 uppercase">
             {language}
           </span>
         )}

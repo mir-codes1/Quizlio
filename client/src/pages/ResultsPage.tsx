@@ -60,16 +60,16 @@ export default function ResultsPage() {
     'Keep practising';
 
   const gradeColor =
-    pct >= 90 ? 'text-emerald-400' :
-    pct >= 75 ? 'text-indigo-400' :
-    pct >= 60 ? 'text-yellow-400' :
-    'text-red-400';
+    pct >= 90 ? 'text-success-600' :
+    pct >= 75 ? 'text-success-500' :
+    pct >= 60 ? 'text-grape-500' :
+    'text-danger-500';
 
   const ringStroke =
-    pct >= 90 ? '#10b981' :
-    pct >= 75 ? '#6366f1' :
-    pct >= 60 ? '#eab308' :
-    '#ef4444';
+    pct >= 90 ? '#2d7d5e' :
+    pct >= 75 ? '#4a9e80' :
+    pct >= 60 ? '#9c528b' :
+    '#9b3050';
 
   const RADIUS = 40;
   const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
@@ -86,12 +86,12 @@ export default function ResultsPage() {
     <div className="max-w-2xl mx-auto pb-16">
       {/* Header */}
       <div className="text-center mb-8">
-        <p className="text-xs uppercase tracking-widest text-slate-500 mb-1">Quiz Complete</p>
-        <h1 className="text-xl font-bold text-white">{quiz.title}</h1>
+        <p className="text-xs uppercase tracking-widest text-blueslate-400 mb-1">Quiz Complete</p>
+        <h1 className="font-display text-xl font-bold text-shadow">{quiz.title}</h1>
       </div>
 
       {/* Score summary */}
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 mb-6">
+      <div className="bg-dust-400 border border-dust-500 rounded-2xl p-6 mb-6 shadow-card">
         <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-10 justify-center">
           <div className="relative w-28 h-28 shrink-0">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
@@ -99,7 +99,7 @@ export default function ResultsPage() {
               <circle
                 cx="50" cy="50" r={RADIUS}
                 fill="none"
-                stroke="#1e293b"
+                stroke="#e5e0de"
                 strokeWidth="9"
               />
               {/* Progress arc */}
@@ -115,22 +115,22 @@ export default function ResultsPage() {
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-bold text-white leading-none">{pct}%</span>
-              <span className="text-[10px] text-slate-400 mt-1">{score}/{total}</span>
+              <span className="text-3xl font-bold text-shadow leading-none">{pct}%</span>
+              <span className="text-[10px] text-blueslate-400 mt-1">{score}/{total}</span>
             </div>
           </div>
 
           <div className="flex flex-col items-center sm:items-start gap-2.5">
             <div className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-              <span className="text-slate-300 text-sm">
-                <span className="font-bold text-white">{score}</span> correct
+              <span className="w-2 h-2 rounded-full bg-success-500 shrink-0" />
+              <span className="text-shadow text-sm">
+                <span className="font-bold">{score}</span> correct
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
-              <span className="text-slate-300 text-sm">
-                <span className="font-bold text-white">{wrong}</span> incorrect
+              <span className="w-2 h-2 rounded-full bg-danger-500 shrink-0" />
+              <span className="text-shadow text-sm">
+                <span className="font-bold">{wrong}</span> incorrect
               </span>
             </div>
             <p className={`text-sm font-semibold pt-0.5 ${gradeColor}`}>{grade}</p>
@@ -139,7 +139,7 @@ export default function ResultsPage() {
       </div>
 
       {/* Per-question breakdown */}
-      <h2 className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-3">
+      <h2 className="text-[10px] font-mono uppercase tracking-widest text-blueslate-400 mb-3">
         Question Review
       </h2>
       <div className="space-y-2.5">
@@ -155,26 +155,26 @@ export default function ResultsPage() {
               key={q.id}
               className={`rounded-xl border p-4 ${
                 correct
-                  ? 'border-emerald-700/40 bg-emerald-950/20'
-                  : 'border-red-700/30 bg-red-950/15'
+                  ? 'border-success-300 bg-success-100'
+                  : 'border-danger-200 bg-danger-100'
               }`}
             >
               {/* Top row */}
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="flex items-start gap-2 flex-1 min-w-0">
-                  <span className="shrink-0 text-xs font-mono text-slate-500 mt-0.5">
+                  <span className="shrink-0 text-xs font-mono text-blueslate-400 mt-0.5">
                     Q{idx + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-200 leading-relaxed">{q.prompt}</p>
+                    <p className="text-sm text-shadow leading-relaxed">{q.prompt}</p>
                     {isMulti && (
-                      <span className="inline-block mt-0.5 text-[10px] text-violet-400">
+                      <span className="inline-block mt-0.5 text-[10px] text-grape-500">
                         choose all that apply
                       </span>
                     )}
                   </div>
                 </div>
-                <span className={`shrink-0 text-xs font-bold ${correct ? 'text-emerald-400' : 'text-red-400'}`}>
+                <span className={`shrink-0 text-xs font-bold ${correct ? 'text-success-600' : 'text-danger-600'}`}>
                   {correct ? '✓' : '✗'}
                 </span>
               </div>
@@ -183,30 +183,30 @@ export default function ResultsPage() {
               <div className="ml-6 space-y-1">
                 {!correct && selected.length > 0 && (
                   <div>
-                    <p className="text-xs text-red-400/80">
+                    <p className="text-xs text-danger-500">
                       Your {selected.length > 1 ? 'selections' : 'answer'}:{' '}
                       <span className="font-mono font-semibold">{selected.join(', ')}</span>
                     </p>
                     {selected.map((key) => (
-                      <p key={key} className="text-xs text-red-300/60 ml-2">
+                      <p key={key} className="text-xs text-danger-400 ml-2">
                         {key} — {optionText[key as OptionKey]}
                       </p>
                     ))}
                   </div>
                 )}
                 <div>
-                  <p className="text-xs text-emerald-400/90">
+                  <p className="text-xs text-success-600">
                     Correct:{' '}
                     <span className="font-mono font-semibold">{q.correctOptions.join(', ')}</span>
                   </p>
                   {q.correctOptions.map((key) => (
-                    <p key={key} className="text-xs text-emerald-300/70 ml-2">
+                    <p key={key} className="text-xs text-success-500 ml-2">
                       {key} — {optionText[key as OptionKey]}
                     </p>
                   ))}
                 </div>
                 {!correct && q.correctExplanation && (
-                  <p className="text-xs text-slate-400 leading-relaxed pt-1">
+                  <p className="text-xs text-blueslate-600 leading-relaxed pt-1">
                     {q.correctExplanation}
                   </p>
                 )}
@@ -220,13 +220,13 @@ export default function ResultsPage() {
       <div className="flex gap-3 justify-center mt-8">
         <button
           onClick={() => navigate('/')}
-          className="px-5 py-2.5 rounded-xl border border-slate-600 hover:border-slate-400 text-slate-300 hover:text-white text-sm font-medium transition-colors"
+          className="px-5 py-2.5 rounded-xl border border-dust-400 hover:border-blueslate-600 text-blueslate-600 hover:text-shadow text-sm font-medium transition-colors"
         >
           Back to Library
         </button>
         <button
           onClick={() => navigate(`/quiz/${id}`, { replace: true })}
-          className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
+          className="px-5 py-2.5 rounded-xl bg-grape-500 hover:bg-grape-600 text-white text-sm font-medium transition-colors"
         >
           Retake Quiz
         </button>
