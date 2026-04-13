@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import Layout from './components/Layout';
 import LibraryPage from './pages/LibraryPage';
 import ImportPage from './pages/ImportPage';
@@ -8,15 +9,18 @@ import ResultsPage from './pages/ResultsPage';
 
 export default function App() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route index element={<LibraryPage />} />
-        <Route path="import" element={<ImportPage />} />
-        <Route path="how-it-works" element={<HowItWorksPage />} />
-        <Route path="quiz/:id" element={<QuizPage />} />
-        <Route path="quiz/:id/results" element={<ResultsPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Route>
-    </Routes>
+    <>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route index element={<LibraryPage />} />
+          <Route path="import" element={<ImportPage />} />
+          <Route path="how-it-works" element={<HowItWorksPage />} />
+          <Route path="quiz/:id" element={<QuizPage />} />
+          <Route path="quiz/:id/results" element={<ResultsPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+      <Analytics />
+    </>
   );
 }
